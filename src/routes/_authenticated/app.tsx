@@ -35,7 +35,7 @@ import {
   useTransactions,
 } from "@/hooks/useFamily";
 import { buildProjection, expandOccurrences, monthWindow, type Tx } from "@/lib/finance";
-import { formatDate, money, monthKey, monthLabel, monthLongLabel } from "@/lib/format";
+import { formatDate, money, monthLabel, monthLongLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/app")({
   head: () => ({

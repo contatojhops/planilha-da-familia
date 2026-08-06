@@ -41,12 +41,12 @@ export function monthKey(date: Date | string) {
 }
 
 export function monthLabel(key: string) {
-  const [y, m] = key.split("-");
+  const [y = "2000", m = "01"] = key.split("-");
   return `${MONTH_LABELS[Number(m) - 1]}/${y.slice(2)}`;
 }
 
 export function monthLongLabel(key: string) {
-  const [y, m] = key.split("-");
+  const [y = "2000", m = "01"] = key.split("-");
   const full = new Date(Number(y), Number(m) - 1, 1).toLocaleDateString("pt-BR", {
     month: "long",
     year: "numeric",

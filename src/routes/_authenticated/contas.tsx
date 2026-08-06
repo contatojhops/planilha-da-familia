@@ -298,7 +298,7 @@ function Contas() {
                   <p className="text-xs text-muted-foreground">
                     {formatDate(b.due_date)} ·{" "}
                     {b.status === "paid"
-                      ? BILL_STATUS_LABELS.paid
+                      ? BILL_STATUS_LABELS["paid"]
                       : late
                         ? `${Math.abs(d)} dia(s) em atraso`
                         : `em ${d} dia(s)`}
@@ -310,7 +310,7 @@ function Contas() {
                       b.status === "paid" ? "secondary" : late ? "destructive" : "outline"
                     }
                   >
-                    {late ? BILL_STATUS_LABELS.overdue : BILL_STATUS_LABELS[b.status]}
+                    {late ? BILL_STATUS_LABELS["overdue"] : BILL_STATUS_LABELS[b.status]}
                   </Badge>
                   <span className="num text-sm font-semibold">{money(b.amount)}</span>
                   {canWrite && (

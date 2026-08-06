@@ -13,8 +13,15 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAppRouteImport } from './routes/_authenticated/app'
+import { Route as AuthenticatedCartoesRouteImport } from './routes/_authenticated/cartoes'
+import { Route as AuthenticatedCategoriasRouteImport } from './routes/_authenticated/categorias'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedContasRouteImport } from './routes/_authenticated/contas'
+import { Route as AuthenticatedFamiliaRouteImport } from './routes/_authenticated/familia'
+import { Route as AuthenticatedInvestimentosRouteImport } from './routes/_authenticated/investimentos'
+import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedPlanilhaRouteImport } from './routes/_authenticated/planilha'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,9 +42,41 @@ const AuthenticatedAppRoute = AuthenticatedAppRouteImport.update({
   path: '/app',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCartoesRoute = AuthenticatedCartoesRouteImport.update({
+  id: '/cartoes',
+  path: '/cartoes',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCategoriasRoute = AuthenticatedCategoriasRouteImport.update({
+  id: '/categorias',
+  path: '/categorias',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContasRoute = AuthenticatedContasRouteImport.update({
   id: '/contas',
   path: '/contas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFamiliaRoute = AuthenticatedFamiliaRouteImport.update({
+  id: '/familia',
+  path: '/familia',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedInvestimentosRoute =
+  AuthenticatedInvestimentosRouteImport.update({
+    id: '/investimentos',
+    path: '/investimentos',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedPlanilhaRoute = AuthenticatedPlanilhaRouteImport.update({
@@ -45,20 +84,39 @@ const AuthenticatedPlanilhaRoute = AuthenticatedPlanilhaRouteImport.update({
   path: '/planilha',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
+  '/cartoes': typeof AuthenticatedCartoesRoute
+  '/categorias': typeof AuthenticatedCategoriasRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/contas': typeof AuthenticatedContasRoute
+  '/familia': typeof AuthenticatedFamiliaRoute
+  '/investimentos': typeof AuthenticatedInvestimentosRoute
+  '/metas': typeof AuthenticatedMetasRoute
   '/planilha': typeof AuthenticatedPlanilhaRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/app': typeof AuthenticatedAppRoute
+  '/cartoes': typeof AuthenticatedCartoesRoute
+  '/categorias': typeof AuthenticatedCategoriasRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/contas': typeof AuthenticatedContasRoute
+  '/familia': typeof AuthenticatedFamiliaRoute
+  '/investimentos': typeof AuthenticatedInvestimentosRoute
+  '/metas': typeof AuthenticatedMetasRoute
   '/planilha': typeof AuthenticatedPlanilhaRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,22 +124,60 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/app': typeof AuthenticatedAppRoute
+  '/_authenticated/cartoes': typeof AuthenticatedCartoesRoute
+  '/_authenticated/categorias': typeof AuthenticatedCategoriasRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/contas': typeof AuthenticatedContasRoute
+  '/_authenticated/familia': typeof AuthenticatedFamiliaRoute
+  '/_authenticated/investimentos': typeof AuthenticatedInvestimentosRoute
+  '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/planilha': typeof AuthenticatedPlanilhaRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/app' | '/contas' | '/planilha'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/cartoes'
+    | '/categorias'
+    | '/configuracoes'
+    | '/contas'
+    | '/familia'
+    | '/investimentos'
+    | '/metas'
+    | '/planilha'
+    | '/relatorios'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/app' | '/contas' | '/planilha'
+  to:
+    | '/'
+    | '/auth'
+    | '/app'
+    | '/cartoes'
+    | '/categorias'
+    | '/configuracoes'
+    | '/contas'
+    | '/familia'
+    | '/investimentos'
+    | '/metas'
+    | '/planilha'
+    | '/relatorios'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/app'
+    | '/_authenticated/cartoes'
+    | '/_authenticated/categorias'
+    | '/_authenticated/configuracoes'
     | '/_authenticated/contas'
+    | '/_authenticated/familia'
+    | '/_authenticated/investimentos'
+    | '/_authenticated/metas'
     | '/_authenticated/planilha'
+    | '/_authenticated/relatorios'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -120,11 +216,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAppRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/cartoes': {
+      id: '/_authenticated/cartoes'
+      path: '/cartoes'
+      fullPath: '/cartoes'
+      preLoaderRoute: typeof AuthenticatedCartoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/categorias': {
+      id: '/_authenticated/categorias'
+      path: '/categorias'
+      fullPath: '/categorias'
+      preLoaderRoute: typeof AuthenticatedCategoriasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/contas': {
       id: '/_authenticated/contas'
       path: '/contas'
       fullPath: '/contas'
       preLoaderRoute: typeof AuthenticatedContasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/familia': {
+      id: '/_authenticated/familia'
+      path: '/familia'
+      fullPath: '/familia'
+      preLoaderRoute: typeof AuthenticatedFamiliaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/investimentos': {
+      id: '/_authenticated/investimentos'
+      path: '/investimentos'
+      fullPath: '/investimentos'
+      preLoaderRoute: typeof AuthenticatedInvestimentosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/metas': {
+      id: '/_authenticated/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof AuthenticatedMetasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/planilha': {
@@ -134,19 +272,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPlanilhaRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAppRoute: typeof AuthenticatedAppRoute
+  AuthenticatedCartoesRoute: typeof AuthenticatedCartoesRoute
+  AuthenticatedCategoriasRoute: typeof AuthenticatedCategoriasRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedContasRoute: typeof AuthenticatedContasRoute
+  AuthenticatedFamiliaRoute: typeof AuthenticatedFamiliaRoute
+  AuthenticatedInvestimentosRoute: typeof AuthenticatedInvestimentosRoute
+  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedPlanilhaRoute: typeof AuthenticatedPlanilhaRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAppRoute: AuthenticatedAppRoute,
+  AuthenticatedCartoesRoute: AuthenticatedCartoesRoute,
+  AuthenticatedCategoriasRoute: AuthenticatedCategoriasRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedContasRoute: AuthenticatedContasRoute,
+  AuthenticatedFamiliaRoute: AuthenticatedFamiliaRoute,
+  AuthenticatedInvestimentosRoute: AuthenticatedInvestimentosRoute,
+  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedPlanilhaRoute: AuthenticatedPlanilhaRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

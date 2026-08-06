@@ -78,7 +78,10 @@ function Planilha() {
 
   const update = useMutation({
     mutationFn: async ({ id, patch }: { id: string; patch: Record<string, unknown> }) => {
-      const { error } = await supabase.from("transactions").update(patch).eq("id", id);
+      const { error } = await supabase
+        .from("transactions")
+        .update(patch as never)
+        .eq("id", id);
       if (error) throw error;
     },
     onSuccess: invalidate,

@@ -1,0 +1,179 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "./useAuth";
+
+export type FamilyRole = "admin" | "member" | "viewer";
+
+export type Membership = {
+  family_id: string;
+  role: FamilyRole;
+  families: { id: string; name: string; currency: string; emergency_fund_target: number } | null;
+};
+
+export function useMemberships() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["memberships", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("family_members")
+        .select("family_id, role, families(id, name, currency, emergency_fund_target)")
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []) as unknown as Membership[];
+    },
+  });
+}
+
+/** Active family = first membership (families are small; one per user in practice). */
+export function useFamily() {
+  const { data, isLoading, error } = useMemberships();
+  const active = data?.[0] ?? null;
+  return {
+    familyId: active?.family_id ?? null,
+    family: active?.families ?? null,
+    role: (active?.role ?? null) as FamilyRole | null,
+    canWrite: active?.role === "admin" || active?.role === "member",
+    isAdmin: active?.role === "admin",
+    isLoading,
+    error,
+  };
+}
+
+export function useFamilyMembers(familyId: string | null) {
+  return useQuery({
+    queryKey: ["family-members", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("family_members")
+        .select("id, user_id, role, created_at")
+        .eq("family_id", familyId!);
+      if (error) throw error;
+      const ids = (data ?? []).map((m) => m.user_id);
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name, email, whatsapp")
+        .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      return (data ?? []).map((m) => ({
+        ...m,
+        profile: profiles?.find((p) => p.id === m.user_id) ?? null,
+      }));
+    },
+  });
+}
+
+export function useCategories(familyId: string | null) {
+  return useQuery({
+    queryKey: ["categories", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .eq("family_id", familyId!)
+        .order("kind")
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useTransactions(familyId: string | null) {
+  return useQuery({
+    queryKey: ["transactions", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("family_id", familyId!)
+        .order("tx_date", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useBills(familyId: string | null) {
+  return useQuery({
+    queryKey: ["bills", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("bills")
+        .select("*")
+        .eq("family_id", familyId!)
+        .order("due_date", { ascending: true });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useGoals(familyId: string | null) {
+  return useQuery({
+    queryKey: ["goals", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("goals")
+        .select("*")
+        .eq("family_id", familyId!)
+        .order("created_at");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useInvestments(familyId: string | null) {
+  return useQuery({
+    queryKey: ["investments", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("investments")
+        .select("*")
+        .eq("family_id", familyId!)
+        .order("purchase_date", { ascending: false });
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useCards(familyId: string | null) {
+  return useQuery({
+    queryKey: ["credit-cards", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("credit_cards")
+        .select("*")
+        .eq("family_id", familyId!)
+        .order("name");
+      if (error) throw error;
+      return data ?? [];
+    },
+  });
+}
+
+export function useProfile() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["profile", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+  });
+}

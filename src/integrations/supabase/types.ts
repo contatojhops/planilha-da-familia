@@ -773,6 +773,10 @@ export type Database = {
     }
     Functions: {
       can_write: { Args: { _family_id: string }; Returns: boolean }
+      create_family_with_owner: {
+        Args: { p_display_name?: string; p_family_name: string }
+        Returns: string
+      }
       family_role_of: {
         Args: { _family_id: string }
         Returns: Database["public"]["Enums"]["family_role"]

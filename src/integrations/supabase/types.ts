@@ -794,6 +794,14 @@ export type Database = {
           total_income: number
         }[]
       }
+      projected_transactions: {
+        Args: { p_family_id: string; p_months?: number }
+        Returns: {
+          amount: number
+          month_ref: string
+          type: Database["public"]["Enums"]["tx_type"]
+        }[]
+      }
     }
     Enums: {
       asset_class:

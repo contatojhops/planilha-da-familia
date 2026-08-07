@@ -23,12 +23,12 @@ export function FamilySetup() {
 
   const create = useMutation({
     mutationFn: async () => {
-      const { data: fam, error } = await supabase
-        .from("families")
-        .insert({ name: familyName.trim() || "Minha família", created_by: user!.id })
-        .select()
-        .single();
+      const { data: familyId, error } = await supabase.rpc("create_family_with_owner", {
+        p_family_name: familyName.trim() || "Minha família",
+        p_display_name: user?.user_metadata?.["full_name"] ?? null,
+      });
       if (error) throw error;
+      const fam = { id: familyId as string };
 
       const { data: cats } = await supabase
         .from("categories")

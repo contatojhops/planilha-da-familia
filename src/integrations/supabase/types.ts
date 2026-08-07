@@ -389,6 +389,48 @@ export type Database = {
           },
         ]
       }
+      investment_value_history: {
+        Row: {
+          created_at: string
+          family_id: string
+          id: string
+          investment_id: string
+          recorded_at: string
+          value: number
+        }
+        Insert: {
+          created_at?: string
+          family_id: string
+          id?: string
+          investment_id: string
+          recorded_at?: string
+          value: number
+        }
+        Update: {
+          created_at?: string
+          family_id?: string
+          id?: string
+          investment_id?: string
+          recorded_at?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investment_value_history_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investment_value_history_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       investments: {
         Row: {
           asset_class: Database["public"]["Enums"]["asset_class"]
@@ -569,6 +611,58 @@ export type Database = {
         }
         Relationships: []
       }
+      shared_expense_splits: {
+        Row: {
+          created_at: string
+          family_id: string
+          id: string
+          is_settled: boolean
+          member_id: string
+          share_amount: number
+          transaction_id: string
+        }
+        Insert: {
+          created_at?: string
+          family_id: string
+          id?: string
+          is_settled?: boolean
+          member_id: string
+          share_amount: number
+          transaction_id: string
+        }
+        Update: {
+          created_at?: string
+          family_id?: string
+          id?: string
+          is_settled?: boolean
+          member_id?: string
+          share_amount?: number
+          transaction_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_expense_splits_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_expense_splits_member_id_fkey"
+            columns: ["member_id"]
+            isOneToOne: false
+            referencedRelation: "family_members"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_expense_splits_transaction_id_fkey"
+            columns: ["transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       transactions: {
         Row: {
           amount: number
@@ -685,6 +779,17 @@ export type Database = {
       }
       is_family_admin: { Args: { _family_id: string }; Returns: boolean }
       is_family_member: { Args: { _family_id: string }; Returns: boolean }
+      monthly_projection: {
+        Args: { p_family_id: string; p_months?: number }
+        Returns: {
+          cumulative_balance: number
+          is_positive: boolean
+          month_ref: string
+          net_balance: number
+          total_expense: number
+          total_income: number
+        }[]
+      }
     }
     Enums: {
       asset_class:

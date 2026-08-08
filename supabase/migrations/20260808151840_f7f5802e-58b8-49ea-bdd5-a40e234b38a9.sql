@@ -1,0 +1,1 @@
+revoke execute on function public.seed_default_categories_for(uuid) from anon, authenticated, public;

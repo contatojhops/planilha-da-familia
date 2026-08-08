@@ -63,7 +63,7 @@ export const Route = createFileRoute("/_authenticated/categorias")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Categorias;
+  component: Categorias,
 });
 
 type Kind = "income" | "fixed_expense" | "variable_expense" | "debt";

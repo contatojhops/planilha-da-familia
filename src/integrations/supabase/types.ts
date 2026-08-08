@@ -802,6 +802,10 @@ export type Database = {
           type: Database["public"]["Enums"]["tx_type"]
         }[]
       }
+      seed_default_categories_for: {
+        Args: { p_family_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       asset_class:

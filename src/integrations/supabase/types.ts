@@ -525,6 +525,50 @@ export type Database = {
           },
         ]
       }
+      net_worth_snapshots: {
+        Row: {
+          cash_balance: number
+          created_at: string
+          debts_value: number
+          family_id: string
+          id: string
+          investments_value: number
+          net_worth: number
+          snapshot_date: string
+          updated_at: string
+        }
+        Insert: {
+          cash_balance: number
+          created_at?: string
+          debts_value: number
+          family_id: string
+          id?: string
+          investments_value: number
+          net_worth: number
+          snapshot_date?: string
+          updated_at?: string
+        }
+        Update: {
+          cash_balance?: number
+          created_at?: string
+          debts_value?: number
+          family_id?: string
+          id?: string
+          investments_value?: number
+          net_worth?: number
+          snapshot_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "net_worth_snapshots_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           body: string | null
@@ -773,13 +817,32 @@ export type Database = {
     }
     Functions: {
       can_write: { Args: { _family_id: string }; Returns: boolean }
+      capture_all_net_worth_snapshots: { Args: never; Returns: undefined }
+      capture_net_worth_snapshot: {
+        Args: { p_family_id: string }
+        Returns: undefined
+      }
       create_family_with_owner: {
         Args: { p_display_name?: string; p_family_name: string }
         Returns: string
       }
+      current_balance: { Args: { p_family_id: string }; Returns: number }
       family_role_of: {
         Args: { _family_id: string }
         Returns: Database["public"]["Enums"]["family_role"]
+      }
+      goals_with_progress: {
+        Args: { p_family_id: string }
+        Returns: {
+          current_amount: number
+          goal_id: string
+          monthly_pace: number
+          name: string
+          progress_percent: number
+          projected_completion_date: string
+          target_amount: number
+          target_date: string
+        }[]
       }
       is_family_admin: { Args: { _family_id: string }; Returns: boolean }
       is_family_member: { Args: { _family_id: string }; Returns: boolean }
@@ -792,6 +855,14 @@ export type Database = {
           net_balance: number
           total_expense: number
           total_income: number
+        }[]
+      }
+      portfolio_allocation: {
+        Args: { p_family_id: string }
+        Returns: {
+          asset_class: Database["public"]["Enums"]["asset_class"]
+          percent: number
+          total_value: number
         }[]
       }
       projected_transactions: {

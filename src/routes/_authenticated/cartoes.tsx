@@ -464,8 +464,8 @@ function CardDetail({ card }: { card: CardRow }) {
     }) => {
       const { error } = await supabase.rpc("pay_card_invoice", {
         p_invoice_id: invoiceId,
-        p_category_id: categoryId,
-        p_owner_id: ownerId,
+        p_category_id: categoryId ?? undefined,
+        p_owner_id: ownerId ?? undefined,
       });
       if (error) throw error;
     },
@@ -493,7 +493,7 @@ function CardDetail({ card }: { card: CardRow }) {
             description="Lance despesas com forma de pagamento crédito neste cartão para ver as faturas."
           />
         ) : (
-          <Accordion type="single" collapsible defaultValue={defaultOpen}>
+          <Accordion type="single" collapsible defaultValue={defaultOpen ?? ""}>
             {rows.map((row) => {
               const invoice = invoiceFor(row.cycle_month);
               const paid = invoice?.status === "paid" || invoice?.status === "paga";

@@ -131,6 +131,70 @@ export type Database = {
           },
         ]
       }
+      card_invoices: {
+        Row: {
+          card_id: string
+          created_at: string
+          cycle_month: string
+          due_date: string
+          family_id: string
+          id: string
+          linked_transaction_id: string | null
+          paid_at: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          cycle_month: string
+          due_date: string
+          family_id: string
+          id?: string
+          linked_transaction_id?: string | null
+          paid_at?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          cycle_month?: string
+          due_date?: string
+          family_id?: string
+          id?: string
+          linked_transaction_id?: string | null
+          paid_at?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "card_invoices_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "credit_cards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_invoices_family_id_fkey"
+            columns: ["family_id"]
+            isOneToOne: false
+            referencedRelation: "families"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "card_invoices_linked_transaction_id_fkey"
+            columns: ["linked_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categories: {
         Row: {
           color: string
@@ -822,6 +886,24 @@ export type Database = {
         Args: { p_family_id: string }
         Returns: undefined
       }
+      card_available_limit: { Args: { p_card_id: string }; Returns: number }
+      card_charges_expanded: {
+        Args: { p_card_id: string; p_cycles?: number }
+        Returns: {
+          amount: number
+          charge_date: string
+          description: string
+        }[]
+      }
+      card_invoice_projection: {
+        Args: { p_card_id: string; p_cycles?: number }
+        Returns: {
+          charge_count: number
+          cycle_month: string
+          due_date: string
+          total_amount: number
+        }[]
+      }
       create_family_with_owner: {
         Args: { p_display_name?: string; p_family_name: string }
         Returns: string
@@ -857,6 +939,14 @@ export type Database = {
           total_income: number
         }[]
       }
+      pay_card_invoice: {
+        Args: {
+          p_category_id?: string
+          p_invoice_id: string
+          p_owner_id?: string
+        }
+        Returns: string
+      }
       portfolio_allocation: {
         Args: { p_family_id: string }
         Returns: {
@@ -875,6 +965,11 @@ export type Database = {
       }
       seed_default_categories_for: {
         Args: { p_family_id: string }
+        Returns: undefined
+      }
+      sync_all_card_invoices: { Args: never; Returns: undefined }
+      sync_card_invoices: {
+        Args: { p_card_id: string; p_cycles?: number }
         Returns: undefined
       }
     }

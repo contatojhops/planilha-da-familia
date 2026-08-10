@@ -462,11 +462,10 @@ function CardDetail({ card }: { card: CardRow }) {
       categoryId: string | null;
       ownerId: string | null;
     }) => {
-      const { error } = await supabase.rpc("pay_card_invoice", {
-        p_invoice_id: invoiceId,
-        p_category_id: categoryId ?? undefined,
-        p_owner_id: ownerId ?? undefined,
-      });
+      const args: Record<string, string> = { p_invoice_id: invoiceId };
+      if (categoryId) args["p_category_id"] = categoryId;
+      if (ownerId) args["p_owner_id"] = ownerId;
+      const { error } = await supabase.rpc("pay_card_invoice", args as never);
       if (error) throw error;
     },
     onSuccess: () => {

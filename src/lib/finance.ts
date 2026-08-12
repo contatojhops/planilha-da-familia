@@ -20,6 +20,23 @@ export type Tx = {
   card_id?: string | null;
 };
 
+export type MonthTransaction = {
+  transaction_id: string;
+  origin_transaction_id: string;
+  description: string;
+  display_date: string;
+  amount: number;
+  type: "income" | "expense";
+  status: "planned" | "realized";
+  category_id: string | null;
+  owner_id: string | null;
+  card_id: string | null;
+  payment_method: string;
+  recurrence: "none" | "monthly" | "yearly" | "installment";
+  installment_label: string | null;
+  is_projected: boolean;
+};
+
 export type Occurrence = Tx & { occurrenceMonth: string; virtual: boolean; amountNum: number };
 
 /** Returns the list of "YYYY-MM" keys for `count` months starting at the current month. */

@@ -177,3 +177,18 @@ export function useProfile() {
     },
   });
 }
+
+export function useMonthTransactions(familyId: string | null, month: string) {
+  return useQuery({
+    queryKey: ["month-transactions", familyId, month],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("family_transactions_for_month", {
+        p_family_id: familyId!,
+        p_month: `${month}-01`,
+      });
+      if (error) throw error;
+      return (data ?? []) as unknown as import("@/lib/finance").MonthTransaction[];
+    },
+  });
+}

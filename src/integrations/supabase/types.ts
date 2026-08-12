@@ -913,6 +913,25 @@ export type Database = {
         Args: { _family_id: string }
         Returns: Database["public"]["Enums"]["family_role"]
       }
+      family_transactions_for_month: {
+        Args: { p_family_id: string; p_month: string }
+        Returns: {
+          amount: number
+          card_id: string
+          category_id: string
+          description: string
+          display_date: string
+          installment_label: string
+          is_projected: boolean
+          origin_transaction_id: string
+          owner_id: string
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          recurrence: Database["public"]["Enums"]["recurrence"]
+          status: Database["public"]["Enums"]["tx_status"]
+          transaction_id: string
+          type: Database["public"]["Enums"]["tx_type"]
+        }[]
+      }
       goals_with_progress: {
         Args: { p_family_id: string }
         Returns: {

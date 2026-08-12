@@ -14,11 +14,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { MonthTimeline, PageHeader, StatCard } from "@/components/finance-ui";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useCategories, useFamily, useFamilyMembers, useTransactions } from "@/hooks/useFamily";
+import {
+  useCategories,
+  useFamily,
+  useFamilyMembers,
+  useMonthTransactions,
+  useTransactions,
+} from "@/hooks/useFamily";
 import {
   PAYMENT_LABELS,
   RECURRENCE_LABELS,
@@ -26,9 +39,10 @@ import {
   downloadCsv,
   expandOccurrences,
   monthWindow,
+  type MonthTransaction,
   type Tx,
 } from "@/lib/finance";
-import { money, monthLongLabel, todayISO } from "@/lib/format";
+import { money, monthLongLabel } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/planilha")({
   head: () => ({
@@ -65,15 +79,15 @@ function Planilha() {
   const months = useMemo(() => monthWindow(12), []);
   const [month, setMonth] = useState(months[0]!);
 
+  const { data: rows = [], isLoading: rowsLoading } = useMonthTransactions(familyId, month);
+
   const occurrences = useMemo(() => expandOccurrences(txs as Tx[], months), [txs, months]);
   const projection = useMemo(() => buildProjection(occurrences, months), [occurrences, months]);
   const monthRow = projection.find((p) => p.key === month)!;
-  const rows = occurrences
-    .filter((o) => o.occurrenceMonth === month)
-    .sort((a, b) => a.tx_date.localeCompare(b.tx_date));
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["transactions", familyId] });
+    qc.invalidateQueries({ queryKey: ["month-transactions", familyId, month] });
   };
 
   const update = useMutation({
@@ -123,14 +137,16 @@ function Planilha() {
     downloadCsv(
       `planilha-${month}.csv`,
       rows.map((r) => ({
-        Data: r.tx_date,
+        Data: r.display_date,
         Descrição: r.description,
         Tipo: r.type === "income" ? "Receita" : "Despesa",
         Categoria: categories.find((c) => c.id === r.category_id)?.name ?? "",
-        Valor: r.amountNum.toFixed(2).replace(".", ","),
+        Valor: Number(r.amount).toFixed(2).replace(".", ","),
         Status: r.status === "realized" ? "Realizado" : "Previsto",
         Recorrência: RECURRENCE_LABELS[r.recurrence] ?? "",
         Pagamento: PAYMENT_LABELS[r.payment_method] ?? "",
+        Parcela: r.installment_label ?? "",
+        Projetado: r.is_projected ? "Sim" : "Não",
       })),
     );
   }
@@ -206,209 +222,38 @@ function Planilha() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.length === 0 && (
+                {rowsLoading && (
                   <TableRow>
-                    <TableCell colSpan={10} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={10}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
+                      Carregando lançamentos...
+                    </TableCell>
+                  </TableRow>
+                )}
+                {!rowsLoading && rows.length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={10}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
                       Nenhum lançamento neste mês.
                     </TableCell>
                   </TableRow>
                 )}
-                {rows.map((row) => {
-                  const readOnly = !canWrite || row.virtual;
-                  return (
-                    <TableRow key={`${row.id}-${row.occurrenceMonth}`}>
-                      <TableCell>
-                        {row.virtual ? (
-                          <span className="text-xs text-muted-foreground">recorrente</span>
-                        ) : (
-                          <Input
-                            type="date"
-                            defaultValue={row.tx_date}
-                            disabled={readOnly}
-                            className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input focus-visible:border-input"
-                            onBlur={(e) =>
-                              e.target.value !== row.tx_date &&
-                              update.mutate({ id: row.id, patch: { tx_date: e.target.value } })
-                            }
-                          />
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-1">
-                          <Input
-                            defaultValue={row.description}
-                            disabled={readOnly}
-                            className="h-8 border-transparent px-1 shadow-none hover:border-input focus-visible:border-input"
-                            onBlur={(e) =>
-                              e.target.value !== row.description &&
-                              update.mutate({ id: row.id, patch: { description: e.target.value } })
-                            }
-                          />
-                          {row.installment_total && (
-                            <Badge variant="outline" className="shrink-0 text-[10px]">
-                              {row.installment_no ?? 1}/{row.installment_total}
-                            </Badge>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          defaultValue={row.amountNum}
-                          disabled={readOnly}
-                          className="num h-8 border-transparent px-1 text-right shadow-none hover:border-input focus-visible:border-input"
-                          onBlur={(e) =>
-                            Number(e.target.value) !== row.amountNum &&
-                            update.mutate({ id: row.id, patch: { amount: Number(e.target.value) } })
-                          }
-                        />
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={row.type}
-                          disabled={readOnly}
-                          onValueChange={(v) => update.mutate({ id: row.id, patch: { type: v } })}
-                        >
-                          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="income">Receita</SelectItem>
-                            <SelectItem value="expense">Despesa</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={row.category_id ?? "none"}
-                          disabled={readOnly}
-                          onValueChange={(v) =>
-                            update.mutate({
-                              id: row.id,
-                              patch: { category_id: v === "none" ? null : v },
-                            })
-                          }
-                        >
-                          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">Sem categoria</SelectItem>
-                            {categories
-                              .filter((c) =>
-                                row.type === "income"
-                                  ? c.kind === "income"
-                                  : c.kind !== "income",
-                              )
-                              .map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={row.owner_id ?? "none"}
-                          disabled={readOnly}
-                          onValueChange={(v) =>
-                            update.mutate({ id: row.id, patch: { owner_id: v === "none" ? null : v } })
-                          }
-                        >
-                          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="none">—</SelectItem>
-                            {members.map((m) => (
-                              <SelectItem key={m.user_id} value={m.user_id}>
-                                {m.profile?.full_name || m.profile?.email || "Membro"}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={row.payment_method}
-                          disabled={readOnly}
-                          onValueChange={(v) =>
-                            update.mutate({ id: row.id, patch: { payment_method: v } })
-                          }
-                        >
-                          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PAYMENTS.map((p) => (
-                              <SelectItem key={p} value={p}>
-                                {PAYMENT_LABELS[p]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={row.recurrence}
-                          disabled={readOnly}
-                          onValueChange={(v) =>
-                            update.mutate({
-                              id: row.id,
-                              patch: {
-                                recurrence: v,
-                                installment_no: v === "installment" ? (row.installment_no ?? 1) : null,
-                                installment_total:
-                                  v === "installment" ? (row.installment_total ?? 12) : null,
-                              },
-                            })
-                          }
-                        >
-                          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {RECURRENCES.map((r) => (
-                              <SelectItem key={r} value={r}>
-                                {RECURRENCE_LABELS[r]}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        <Select
-                          value={row.status}
-                          disabled={readOnly}
-                          onValueChange={(v) => update.mutate({ id: row.id, patch: { status: v } })}
-                        >
-                          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="planned">Previsto</SelectItem>
-                            <SelectItem value="realized">Realizado</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      <TableCell>
-                        {!row.virtual && canWrite && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 text-muted-foreground hover:text-negative"
-                            onClick={() => remove.mutate(row.id)}
-                            aria-label="Excluir lançamento"
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {!rowsLoading &&
+                  rows.map((row) => (
+                    <TransactionRow
+                      key={`${row.transaction_id}-${month}`}
+                      row={row}
+                      canWrite={canWrite}
+                      categories={categories}
+                      members={members}
+                      onUpdate={update.mutate}
+                      onDelete={remove.mutate}
+                    />
+                  ))}
               </TableBody>
             </Table>
           </div>
@@ -416,8 +261,218 @@ function Planilha() {
       </Card>
       <p className="text-xs text-muted-foreground">
         Linhas marcadas como “recorrente” são projeções automáticas do lançamento original — edite o
-        lançamento no mês de origem ({todayISO().slice(0, 7)} em diante) para alterá-las.
+        lançamento no mês de origem para alterá-las.
       </p>
     </div>
+  );
+}
+
+function TransactionRow({
+  row,
+  canWrite,
+  categories,
+  members,
+  onUpdate,
+  onDelete,
+}: {
+  row: MonthTransaction;
+  canWrite: boolean;
+  categories: { id: string; name: string; kind: string }[];
+  members: {
+    user_id: string;
+    profile: { full_name?: string | null; email?: string | null } | null;
+  }[];
+  onUpdate: (payload: { id: string; patch: Record<string, unknown> }) => void;
+  onDelete: (id: string) => void;
+}) {
+  const readOnly = !canWrite || row.is_projected;
+  const originId = row.origin_transaction_id;
+  const amount = Number(row.amount);
+
+  return (
+    <TableRow>
+      <TableCell>
+        {row.is_projected ? (
+          <span className="text-xs text-muted-foreground">recorrente</span>
+        ) : (
+          <Input
+            type="date"
+            defaultValue={row.display_date}
+            disabled={readOnly}
+            className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input focus-visible:border-input"
+            onBlur={(e) =>
+              e.target.value !== row.display_date &&
+              onUpdate({ id: originId, patch: { tx_date: e.target.value } })
+            }
+          />
+        )}
+      </TableCell>
+      <TableCell>
+        <div className="flex items-center gap-1">
+          <Input
+            defaultValue={row.description}
+            disabled={readOnly}
+            className="h-8 border-transparent px-1 shadow-none hover:border-input focus-visible:border-input"
+            onBlur={(e) =>
+              e.target.value !== row.description &&
+              onUpdate({ id: originId, patch: { description: e.target.value } })
+            }
+          />
+          {row.installment_label && (
+            <Badge variant="outline" className="shrink-0 text-[10px]">
+              {row.installment_label}
+            </Badge>
+          )}
+        </div>
+      </TableCell>
+      <TableCell>
+        <Input
+          type="number"
+          step="0.01"
+          defaultValue={amount}
+          disabled={readOnly}
+          className="num h-8 border-transparent px-1 text-right shadow-none hover:border-input focus-visible:border-input"
+          onBlur={(e) =>
+            Number(e.target.value) !== amount &&
+            onUpdate({ id: originId, patch: { amount: Number(e.target.value) } })
+          }
+        />
+      </TableCell>
+      <TableCell>
+        <Select
+          value={row.type}
+          disabled={readOnly}
+          onValueChange={(v) => onUpdate({ id: originId, patch: { type: v } })}
+        >
+          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="income">Receita</SelectItem>
+            <SelectItem value="expense">Despesa</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        <Select
+          value={row.category_id ?? "none"}
+          disabled={readOnly}
+          onValueChange={(v) =>
+            onUpdate({
+              id: originId,
+              patch: { category_id: v === "none" ? null : v },
+            })
+          }
+        >
+          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Sem categoria</SelectItem>
+            {categories
+              .filter((c) => (row.type === "income" ? c.kind === "income" : c.kind !== "income"))
+              .map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        <Select
+          value={row.owner_id ?? "none"}
+          disabled={readOnly}
+          onValueChange={(v) =>
+            onUpdate({ id: originId, patch: { owner_id: v === "none" ? null : v } })
+          }
+        >
+          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">—</SelectItem>
+            {members.map((m) => (
+              <SelectItem key={m.user_id} value={m.user_id}>
+                {m.profile?.full_name || m.profile?.email || "Membro"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        <Select
+          value={row.payment_method}
+          disabled={readOnly}
+          onValueChange={(v) => onUpdate({ id: originId, patch: { payment_method: v } })}
+        >
+          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {PAYMENTS.map((p) => (
+              <SelectItem key={p} value={p}>
+                {PAYMENT_LABELS[p]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        <Select
+          value={row.recurrence}
+          disabled={readOnly}
+          onValueChange={(v) =>
+            onUpdate({
+              id: originId,
+              patch: {
+                recurrence: v,
+                installment_no: v === "installment" ? 1 : null,
+                installment_total: v === "installment" ? 12 : null,
+              },
+            })
+          }
+        >
+          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {RECURRENCES.map((r) => (
+              <SelectItem key={r} value={r}>
+                {RECURRENCE_LABELS[r]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        <Select
+          value={row.status}
+          disabled={readOnly}
+          onValueChange={(v) => onUpdate({ id: originId, patch: { status: v } })}
+        >
+          <SelectTrigger className="h-8 border-transparent px-1 text-xs shadow-none hover:border-input">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="planned">Previsto</SelectItem>
+            <SelectItem value="realized">Realizado</SelectItem>
+          </SelectContent>
+        </Select>
+      </TableCell>
+      <TableCell>
+        {!row.is_projected && canWrite && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-muted-foreground hover:text-negative"
+            onClick={() => onDelete(originId)}
+            aria-label="Excluir lançamento"
+          >
+            <Trash2 className="size-4" />
+          </Button>
+        )}
+      </TableCell>
+    </TableRow>
   );
 }

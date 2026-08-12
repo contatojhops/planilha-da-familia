@@ -224,10 +224,9 @@ export function toCsv(rows: Record<string, unknown>[]): string {
   if (rows.length === 0) return "";
   const headers = Object.keys(rows[0]!);
   const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  return [
-    headers.join(";"),
-    ...rows.map((r) => headers.map((h) => escape(r[h])).join(";")),
-  ].join("\n");
+  return [headers.join(";"), ...rows.map((r) => headers.map((h) => escape(r[h])).join(";"))].join(
+    "\n",
+  );
 }
 
 export function downloadCsv(filename: string, rows: Record<string, unknown>[]) {

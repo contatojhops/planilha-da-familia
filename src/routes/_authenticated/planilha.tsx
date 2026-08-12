@@ -14,7 +14,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { MonthTimeline, PageHeader, StatCard } from "@/components/finance-ui";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -217,14 +224,20 @@ function Planilha() {
               <TableBody>
                 {rowsLoading && (
                   <TableRow>
-                    <TableCell colSpan={10} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={10}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
                       Carregando lançamentos...
                     </TableCell>
                   </TableRow>
                 )}
                 {!rowsLoading && rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={10} className="py-8 text-center text-sm text-muted-foreground">
+                    <TableCell
+                      colSpan={10}
+                      className="py-8 text-center text-sm text-muted-foreground"
+                    >
                       Nenhum lançamento neste mês.
                     </TableCell>
                   </TableRow>
@@ -247,8 +260,8 @@ function Planilha() {
         </CardContent>
       </Card>
       <p className="text-xs text-muted-foreground">
-        Linhas marcadas como “recorrente” são projeções automáticas do lançamento original — edite
-        o lançamento no mês de origem para alterá-las.
+        Linhas marcadas como “recorrente” são projeções automáticas do lançamento original — edite o
+        lançamento no mês de origem para alterá-las.
       </p>
     </div>
   );
@@ -265,7 +278,10 @@ function TransactionRow({
   row: MonthTransaction;
   canWrite: boolean;
   categories: { id: string; name: string; kind: string }[];
-  members: { user_id: string; profile: { full_name?: string | null; email?: string | null } | null }[];
+  members: {
+    user_id: string;
+    profile: { full_name?: string | null; email?: string | null } | null;
+  }[];
   onUpdate: (payload: { id: string; patch: Record<string, unknown> }) => void;
   onDelete: (id: string) => void;
 }) {
@@ -354,9 +370,7 @@ function TransactionRow({
           <SelectContent>
             <SelectItem value="none">Sem categoria</SelectItem>
             {categories
-              .filter((c) =>
-                row.type === "income" ? c.kind === "income" : c.kind !== "income",
-              )
+              .filter((c) => (row.type === "income" ? c.kind === "income" : c.kind !== "income"))
               .map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}

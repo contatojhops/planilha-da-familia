@@ -233,24 +233,26 @@ export function TransactionDialog({
             </div>
           </div>
 
-          {showCardFields && (
+          {(showCardFields || isInstallment) && (
             <div className="grid gap-3 rounded-md border bg-muted/30 p-3 sm:grid-cols-2">
-              <div className="grid gap-1.5">
-                <Label>Cartão</Label>
-                <Select value={cardId} onValueChange={setCardId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o cartão" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Sem cartão</SelectItem>
-                    {(cards as { id: string; name: string }[]).map((c) => (
-                      <SelectItem key={c.id} value={c.id}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {showCardFields && (
+                <div className="grid gap-1.5">
+                  <Label>Cartão utilizado</Label>
+                  <Select value={cardId} onValueChange={setCardId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o cartão" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem cartão</SelectItem>
+                      {(cards as { id: string; name: string }[]).map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               {isInstallment && (
                 <div className="grid gap-1.5">
                   <Label htmlFor="tx-installments">Número de parcelas</Label>
@@ -266,6 +268,7 @@ export function TransactionDialog({
               )}
             </div>
           )}
+
 
           <div className="grid gap-1.5">
             <Label>Status</Label>

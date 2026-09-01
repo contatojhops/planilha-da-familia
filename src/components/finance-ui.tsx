@@ -71,7 +71,9 @@ export function StatCard({
           {value}
         </p>
         {hint && (
-          <p className={cn("mt-1 text-xs", fill ? "opacity-80" : "text-muted-foreground")}>{hint}</p>
+          <p className={cn("mt-1 text-xs", fill ? "opacity-80" : "text-muted-foreground")}>
+            {hint}
+          </p>
         )}
       </CardContent>
     </Card>
@@ -84,7 +86,6 @@ export function accumulatedFill(accumulated: number): "positive" | "warning" | "
   if (accumulated <= 100) return "warning";
   return "positive";
 }
-
 
 export function MonthTimeline({
   rows,
@@ -125,7 +126,6 @@ export function MonthTimeline({
               )}
             </button>
           );
-
         })}
       </div>
     </div>

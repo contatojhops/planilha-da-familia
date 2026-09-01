@@ -234,9 +234,7 @@ function Page() {
                       </span>
                       <div>
                         <p className="font-medium leading-tight">{card.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {memberName(card.owner_id)}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{memberName(card.owner_id)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -409,7 +407,6 @@ function CardDetail({ card }: { card: CardRow }) {
   const [payFor, setPayFor] = useState<InvoiceRow | null>(null);
   const [newPurchase, setNewPurchase] = useState(false);
 
-
   const projection = useQuery({
     queryKey: ["card-projection", card.id],
     queryFn: async () => {
@@ -508,7 +505,6 @@ function CardDetail({ card }: { card: CardRow }) {
             qc.invalidateQueries({ queryKey: ["card-limits"] });
           }}
         />
-
 
         {rows.length === 0 ? (
           <EmptyState
@@ -696,7 +692,10 @@ function PayDialog({
           <Button
             disabled={pending}
             onClick={() =>
-              onConfirm(categoryId === "none" ? null : categoryId, ownerId === "none" ? null : ownerId)
+              onConfirm(
+                categoryId === "none" ? null : categoryId,
+                ownerId === "none" ? null : ownerId,
+              )
             }
           >
             Confirmar pagamento

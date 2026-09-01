@@ -269,7 +269,6 @@ export function TransactionDialog({
             </div>
           )}
 
-
           <div className="grid gap-1.5">
             <Label>Status</Label>
             <Select value={status} onValueChange={setStatus}>

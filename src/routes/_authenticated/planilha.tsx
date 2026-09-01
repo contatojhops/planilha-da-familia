@@ -82,7 +82,6 @@ function Planilha() {
   const [month, setMonth] = useState(months[0]!);
   const [dialogType, setDialogType] = useState<"income" | "expense" | null>(null);
 
-
   const { data: rows = [], isLoading: rowsLoading } = useMonthTransactions(familyId, month);
 
   const occurrences = useMemo(() => expandOccurrences(txs as Tx[], months), [txs, months]);
@@ -117,9 +116,6 @@ function Planilha() {
     },
     onError: (e: Error) => toast.error(e.message),
   });
-
-
-
 
   function exportCsv() {
     downloadCsv(
@@ -194,7 +190,6 @@ function Planilha() {
           }
         />
       </div>
-
 
       {monthRow.balance < 0 && (
         <div className="flex items-center gap-2 rounded-lg border border-negative/40 bg-negative-soft px-4 py-3 text-sm text-negative">

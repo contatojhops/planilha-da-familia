@@ -22,7 +22,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MonthTimeline, PageHeader, StatCard } from "@/components/finance-ui";
+import { MonthTimeline, PageHeader, StatCard, accumulatedFill } from "@/components/finance-ui";
+import { TransactionDialog } from "@/components/TransactionDialog";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {

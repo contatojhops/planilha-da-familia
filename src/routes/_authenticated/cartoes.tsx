@@ -405,6 +405,8 @@ function CardDetail({ card }: { card: CardRow }) {
   const { data: members = [] } = useFamilyMembers(familyId);
   const { data: categories = [] } = useCategories(familyId);
   const [payFor, setPayFor] = useState<InvoiceRow | null>(null);
+  const [newPurchase, setNewPurchase] = useState(false);
+
 
   const projection = useQuery({
     queryKey: ["card-projection", card.id],

@@ -80,6 +80,8 @@ function Planilha() {
 
   const months = useMemo(() => monthWindow(12), []);
   const [month, setMonth] = useState(months[0]!);
+  const [dialogType, setDialogType] = useState<"income" | "expense" | null>(null);
+
 
   const { data: rows = [], isLoading: rowsLoading } = useMonthTransactions(familyId, month);
 

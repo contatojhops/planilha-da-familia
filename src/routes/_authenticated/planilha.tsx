@@ -22,7 +22,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { MonthTimeline, PageHeader, StatCard } from "@/components/finance-ui";
+import { MonthTimeline, PageHeader, StatCard, accumulatedFill } from "@/components/finance-ui";
+import { TransactionDialog } from "@/components/TransactionDialog";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import {
@@ -78,6 +80,7 @@ function Planilha() {
 
   const months = useMemo(() => monthWindow(12), []);
   const [month, setMonth] = useState(months[0]!);
+  const [dialogType, setDialogType] = useState<"income" | "expense" | null>(null);
 
   const { data: rows = [], isLoading: rowsLoading } = useMonthTransactions(familyId, month);
 
@@ -114,25 +117,6 @@ function Planilha() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const create = useMutation({
-    mutationFn: async (type: "income" | "expense") => {
-      const [y, m] = month.split("-");
-      const { error } = await supabase.from("transactions").insert({
-        family_id: familyId!,
-        description: type === "income" ? "Nova receita" : "Nova despesa",
-        amount: 0,
-        type,
-        status: "planned",
-        tx_date: `${y}-${m}-${String(Math.min(new Date().getDate(), 28)).padStart(2, "0")}`,
-        owner_id: user!.id,
-        created_by: user!.id,
-      });
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-    onError: (e: Error) => toast.error(e.message),
-  });
-
   function exportCsv() {
     downloadCsv(
       `planilha-${month}.csv`,
@@ -163,10 +147,10 @@ function Planilha() {
             </Button>
             {canWrite && (
               <>
-                <Button size="sm" variant="secondary" onClick={() => create.mutate("income")}>
+                <Button size="sm" variant="secondary" onClick={() => setDialogType("income")}>
                   <Plus className="size-4" /> Receita
                 </Button>
-                <Button size="sm" onClick={() => create.mutate("expense")}>
+                <Button size="sm" onClick={() => setDialogType("expense")}>
                   <Plus className="size-4" /> Despesa
                 </Button>
               </>
@@ -175,19 +159,34 @@ function Planilha() {
         }
       />
 
+      <TransactionDialog
+        open={dialogType !== null}
+        onOpenChange={(open) => !open && setDialogType(null)}
+        type={dialogType ?? "expense"}
+        defaultMonth={month}
+      />
+
       <MonthTimeline rows={projection} selected={month} onSelect={setMonth} />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Receitas do mês" value={money(monthRow.income)} />
         <StatCard label="Despesas do mês" value={money(monthRow.expense)} />
         <StatCard
           label="Saldo projetado"
           value={money(monthRow.balance)}
           tone={monthRow.balance < 0 ? "negative" : "positive"}
+          hint={monthRow.balance < 0 ? `Déficit de ${money(monthRow.deficit)}` : "Mês positivo"}
+        />
+        <StatCard
+          label="Saldo acumulado"
+          value={money(monthRow.cumulative)}
+          fill={accumulatedFill(monthRow.cumulative)}
           hint={
-            monthRow.balance < 0
-              ? `Déficit de ${money(monthRow.deficit)} · acumulado ${money(monthRow.cumulative)}`
-              : `Acumulado ${money(monthRow.cumulative)}`
+            monthRow.cumulative < -500
+              ? "Crítico: abaixo de −R$ 500"
+              : monthRow.cumulative <= 100
+                ? "Atenção: entre −R$ 500 e R$ 100"
+                : "Saudável: acima de R$ 100"
           }
         />
       </div>

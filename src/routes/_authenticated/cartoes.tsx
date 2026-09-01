@@ -29,6 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState, PageHeader } from "@/components/finance-ui";
+import { TransactionDialog } from "@/components/TransactionDialog";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useCards, useCategories, useFamily, useFamilyMembers } from "@/hooks/useFamily";
 import { formatDate, money, monthKey, monthLongLabel } from "@/lib/format";
@@ -232,9 +234,7 @@ function Page() {
                       </span>
                       <div>
                         <p className="font-medium leading-tight">{card.name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {memberName(card.owner_id)}
-                        </p>
+                        <p className="text-xs text-muted-foreground">{memberName(card.owner_id)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
@@ -405,6 +405,7 @@ function CardDetail({ card }: { card: CardRow }) {
   const { data: members = [] } = useFamilyMembers(familyId);
   const { data: categories = [] } = useCategories(familyId);
   const [payFor, setPayFor] = useState<InvoiceRow | null>(null);
+  const [newPurchase, setNewPurchase] = useState(false);
 
   const projection = useQuery({
     queryKey: ["card-projection", card.id],
@@ -483,8 +484,27 @@ function CardDetail({ card }: { card: CardRow }) {
       <CardContent className="p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold">Faturas — {card.name}</h2>
-          <span className="text-xs text-muted-foreground">próximos 6 ciclos</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">próximos 6 ciclos</span>
+            {canWrite && (
+              <Button size="sm" onClick={() => setNewPurchase(true)}>
+                <Plus className="size-4" /> Nova compra
+              </Button>
+            )}
+          </div>
         </div>
+
+        <TransactionDialog
+          open={newPurchase}
+          onOpenChange={setNewPurchase}
+          type="expense"
+          defaultCardId={card.id}
+          onCreated={() => {
+            qc.invalidateQueries({ queryKey: ["card-projection", card.id] });
+            qc.invalidateQueries({ queryKey: ["card-charges", card.id] });
+            qc.invalidateQueries({ queryKey: ["card-limits"] });
+          }}
+        />
 
         {rows.length === 0 ? (
           <EmptyState
@@ -672,7 +692,10 @@ function PayDialog({
           <Button
             disabled={pending}
             onClick={() =>
-              onConfirm(categoryId === "none" ? null : categoryId, ownerId === "none" ? null : ownerId)
+              onConfirm(
+                categoryId === "none" ? null : categoryId,
+                ownerId === "none" ? null : ownerId,
+              )
             }
           >
             Confirmar pagamento

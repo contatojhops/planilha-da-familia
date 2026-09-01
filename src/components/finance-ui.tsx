@@ -31,35 +31,60 @@ export function StatCard({
   hint,
   icon: Icon,
   tone = "neutral",
+  fill,
 }: {
   label: string;
   value: string;
   hint?: string;
   icon?: LucideIcon;
   tone?: "neutral" | "positive" | "negative";
+  /** Colors the whole card (background, border and text) — used by the balance traffic light. */
+  fill?: "positive" | "warning" | "negative";
 }) {
   return (
-    <Card>
+    <Card
+      className={cn(
+        fill === "positive" && "border-positive/40 bg-positive-soft text-positive",
+        fill === "warning" && "border-warning/40 bg-warning-soft text-warning",
+        fill === "negative" && "border-negative/40 bg-negative-soft text-negative",
+      )}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          <p
+            className={cn(
+              "text-xs font-medium uppercase tracking-wide",
+              fill ? "opacity-80" : "text-muted-foreground",
+            )}
+          >
             {label}
           </p>
-          {Icon && <Icon className="size-4 text-muted-foreground" />}
+          {Icon && <Icon className={cn("size-4", !fill && "text-muted-foreground")} />}
         </div>
         <p
           className={cn(
             "num mt-2 text-xl font-semibold md:text-2xl",
-            tone === "positive" && "text-positive",
-            tone === "negative" && "text-negative",
+            !fill && tone === "positive" && "text-positive",
+            !fill && tone === "negative" && "text-negative",
           )}
         >
           {value}
         </p>
-        {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
+        {hint && (
+          <p className={cn("mt-1 text-xs", fill ? "opacity-80" : "text-muted-foreground")}>
+            {hint}
+          </p>
+        )}
       </CardContent>
     </Card>
   );
+}
+
+/** Traffic light thresholds for the accumulated balance. */
+export function accumulatedFill(accumulated: number): "positive" | "warning" | "negative" {
+  if (accumulated < -500) return "negative";
+  if (accumulated <= 100) return "warning";
+  return "positive";
 }
 
 export function MonthTimeline({
@@ -76,7 +101,7 @@ export function MonthTimeline({
       <div className="flex min-w-max gap-2">
         {rows.map((row) => {
           const negative = row.balance < 0;
-          const cumulativeNegative = row.cumulative < 0;
+          const fill = accumulatedFill(row.cumulative);
           return (
             <button
               key={row.key}
@@ -84,33 +109,20 @@ export function MonthTimeline({
               onClick={() => onSelect?.(row.key)}
               className={cn(
                 "min-w-[104px] rounded-lg border px-3 py-2 text-left transition-colors",
-                negative
-                  ? "border-negative/40 bg-negative-soft"
-                  : "border-positive/40 bg-positive-soft",
+                fill === "negative" && "border-negative/40 bg-negative-soft text-negative",
+                fill === "warning" && "border-warning/40 bg-warning-soft text-warning",
+                fill === "positive" && "border-positive/40 bg-positive-soft text-positive",
                 selected === row.key && "ring-2 ring-ring",
               )}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold uppercase">{monthLabel(row.key)}</span>
-                {(negative || cumulativeNegative) && (
-                  <AlertTriangle
-                    className={cn("size-3.5", negative ? "text-negative" : "text-warning")}
-                  />
-                )}
+                {(negative || fill !== "positive") && <AlertTriangle className="size-3.5" />}
               </div>
-              <p
-                className={cn(
-                  "num mt-1 text-sm font-semibold",
-                  negative ? "text-negative" : "text-positive",
-                )}
-              >
-                {money(row.balance)}
-              </p>
-              <p className="num text-[11px] text-muted-foreground">acum. {money(row.cumulative)}</p>
+              <p className="num mt-1 text-sm font-semibold">{money(row.balance)}</p>
+              <p className="num text-[11px] opacity-80">acum. {money(row.cumulative)}</p>
               {negative && (
-                <p className="num text-[11px] font-medium text-negative">
-                  déficit {money(row.deficit)}
-                </p>
+                <p className="num text-[11px] font-medium">déficit {money(row.deficit)}</p>
               )}
             </button>
           );

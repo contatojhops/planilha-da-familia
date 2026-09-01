@@ -29,6 +29,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { EmptyState, PageHeader } from "@/components/finance-ui";
+import { TransactionDialog } from "@/components/TransactionDialog";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useCards, useCategories, useFamily, useFamilyMembers } from "@/hooks/useFamily";
 import { formatDate, money, monthKey, monthLongLabel } from "@/lib/format";

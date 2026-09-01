@@ -114,24 +114,8 @@ function Planilha() {
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const create = useMutation({
-    mutationFn: async (type: "income" | "expense") => {
-      const [y, m] = month.split("-");
-      const { error } = await supabase.from("transactions").insert({
-        family_id: familyId!,
-        description: type === "income" ? "Nova receita" : "Nova despesa",
-        amount: 0,
-        type,
-        status: "planned",
-        tx_date: `${y}-${m}-${String(Math.min(new Date().getDate(), 28)).padStart(2, "0")}`,
-        owner_id: user!.id,
-        created_by: user!.id,
-      });
-      if (error) throw error;
-    },
-    onSuccess: invalidate,
-    onError: (e: Error) => toast.error(e.message),
-  });
+
+
 
   function exportCsv() {
     downloadCsv(

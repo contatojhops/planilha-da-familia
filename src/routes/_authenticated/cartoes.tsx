@@ -483,8 +483,28 @@ function CardDetail({ card }: { card: CardRow }) {
       <CardContent className="p-4">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-base font-semibold">Faturas — {card.name}</h2>
-          <span className="text-xs text-muted-foreground">próximos 6 ciclos</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">próximos 6 ciclos</span>
+            {canWrite && (
+              <Button size="sm" onClick={() => setNewPurchase(true)}>
+                <Plus className="size-4" /> Nova compra
+              </Button>
+            )}
+          </div>
         </div>
+
+        <TransactionDialog
+          open={newPurchase}
+          onOpenChange={setNewPurchase}
+          type="expense"
+          defaultCardId={card.id}
+          onCreated={() => {
+            qc.invalidateQueries({ queryKey: ["card-projection", card.id] });
+            qc.invalidateQueries({ queryKey: ["card-charges", card.id] });
+            qc.invalidateQueries({ queryKey: ["card-limits"] });
+          }}
+        />
+
 
         {rows.length === 0 ? (
           <EmptyState

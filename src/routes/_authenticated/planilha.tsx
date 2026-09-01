@@ -147,10 +147,10 @@ function Planilha() {
             </Button>
             {canWrite && (
               <>
-                <Button size="sm" variant="secondary" onClick={() => create.mutate("income")}>
+                <Button size="sm" variant="secondary" onClick={() => setDialogType("income")}>
                   <Plus className="size-4" /> Receita
                 </Button>
-                <Button size="sm" onClick={() => create.mutate("expense")}>
+                <Button size="sm" onClick={() => setDialogType("expense")}>
                   <Plus className="size-4" /> Despesa
                 </Button>
               </>
@@ -159,22 +159,38 @@ function Planilha() {
         }
       />
 
+      <TransactionDialog
+        open={dialogType !== null}
+        onOpenChange={(open) => !open && setDialogType(null)}
+        type={dialogType ?? "expense"}
+        defaultMonth={month}
+      />
+
       <MonthTimeline rows={projection} selected={month} onSelect={setMonth} />
 
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Receitas do mês" value={money(monthRow.income)} />
         <StatCard label="Despesas do mês" value={money(monthRow.expense)} />
         <StatCard
           label="Saldo projetado"
           value={money(monthRow.balance)}
           tone={monthRow.balance < 0 ? "negative" : "positive"}
+          hint={monthRow.balance < 0 ? `Déficit de ${money(monthRow.deficit)}` : "Mês positivo"}
+        />
+        <StatCard
+          label="Saldo acumulado"
+          value={money(monthRow.cumulative)}
+          fill={accumulatedFill(monthRow.cumulative)}
           hint={
-            monthRow.balance < 0
-              ? `Déficit de ${money(monthRow.deficit)} · acumulado ${money(monthRow.cumulative)}`
-              : `Acumulado ${money(monthRow.cumulative)}`
+            monthRow.cumulative < -500
+              ? "Crítico: abaixo de −R$ 500"
+              : monthRow.cumulative <= 100
+                ? "Atenção: entre −R$ 500 e R$ 100"
+                : "Saudável: acima de R$ 100"
           }
         />
       </div>
+
 
       {monthRow.balance < 0 && (
         <div className="flex items-center gap-2 rounded-lg border border-negative/40 bg-negative-soft px-4 py-3 text-sm text-negative">

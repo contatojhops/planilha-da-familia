@@ -1,0 +1,1 @@
+revoke execute on function public.create_family_with_owner(text, text) from anon;

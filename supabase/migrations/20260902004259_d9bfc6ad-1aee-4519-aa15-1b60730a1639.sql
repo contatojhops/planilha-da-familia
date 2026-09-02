@@ -1,0 +1,12 @@
+revoke execute on function public.handle_new_user() from anon, authenticated;
+revoke execute on function public.log_tx_audit() from anon, authenticated;
+revoke execute on function public.touch_updated_at() from anon, authenticated;
+revoke execute on function public.trg_sync_card_invoice_on_transaction() from anon, authenticated;
+revoke execute on function public.update_goal_current_amount() from anon, authenticated;
+revoke execute on function public.update_investment_current_value() from anon, authenticated;
+revoke execute on function public.seed_default_categories() from anon, authenticated;
+revoke execute on function public.seed_default_categories_for(uuid) from anon, authenticated;
+revoke execute on function public.sync_card_invoices(uuid, integer) from anon, authenticated;
+revoke execute on function public.sync_all_card_invoices() from anon, authenticated;
+revoke execute on function public.capture_net_worth_snapshot(uuid) from anon, authenticated;
+revoke execute on function public.capture_all_net_worth_snapshots() from anon, authenticated;

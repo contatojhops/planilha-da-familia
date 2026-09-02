@@ -555,6 +555,7 @@ export type Database = {
           id: string
           invited_by: string
           role: Database["public"]["Enums"]["family_role"]
+          status: string
           token: string
         }
         Insert: {
@@ -566,6 +567,7 @@ export type Database = {
           id?: string
           invited_by: string
           role?: Database["public"]["Enums"]["family_role"]
+          status?: string
           token?: string
         }
         Update: {
@@ -577,6 +579,7 @@ export type Database = {
           id?: string
           invited_by?: string
           role?: Database["public"]["Enums"]["family_role"]
+          status?: string
           token?: string
         }
         Relationships: [
@@ -880,6 +883,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_family_invite: { Args: { p_token: string }; Returns: string }
       can_write: { Args: { _family_id: string }; Returns: boolean }
       capture_all_net_worth_snapshots: { Args: never; Returns: undefined }
       capture_net_worth_snapshot: {
@@ -903,6 +907,25 @@ export type Database = {
           due_date: string
           total_amount: number
         }[]
+      }
+      category_budget_vs_actual: {
+        Args: { p_family_id: string; p_month: string }
+        Returns: {
+          actual_amount: number
+          category_id: string
+          category_name: string
+          kind: Database["public"]["Enums"]["category_kind"]
+          monthly_budget: number
+          percent_used: number
+        }[]
+      }
+      create_family_invite: {
+        Args: {
+          p_email: string
+          p_family_id: string
+          p_role: Database["public"]["Enums"]["family_role"]
+        }
+        Returns: string
       }
       create_family_with_owner: {
         Args: { p_display_name?: string; p_family_name: string }
@@ -945,6 +968,19 @@ export type Database = {
           target_date: string
         }[]
       }
+      historical_monthly_actuals: {
+        Args: {
+          p_family_id: string
+          p_member_id?: string
+          p_months_back?: number
+        }
+        Returns: {
+          month_ref: string
+          net_balance: number
+          total_expense: number
+          total_income: number
+        }[]
+      }
       is_family_admin: { Args: { _family_id: string }; Returns: boolean }
       is_family_member: { Args: { _family_id: string }; Returns: boolean }
       monthly_projection: {
@@ -981,6 +1017,10 @@ export type Database = {
           month_ref: string
           type: Database["public"]["Enums"]["tx_type"]
         }[]
+      }
+      revoke_family_invite: {
+        Args: { p_invite_id: string }
+        Returns: undefined
       }
       seed_default_categories_for: {
         Args: { p_family_id: string }

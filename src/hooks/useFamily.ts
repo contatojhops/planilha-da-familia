@@ -41,8 +41,16 @@ export function useFamily() {
   };
 }
 
+export type FamilyMember = {
+  id: string;
+  user_id: string;
+  role: FamilyRole;
+  created_at: string;
+  profile: { id: string; full_name: string | null; email: string | null; whatsapp: string | null } | null;
+};
+
 export function useFamilyMembers(familyId: string | null) {
-  return useQuery({
+  return useQuery<FamilyMember[]>({
     queryKey: ["family-members", familyId],
     enabled: !!familyId,
     queryFn: async () => {
@@ -59,7 +67,7 @@ export function useFamilyMembers(familyId: string | null) {
       return (data ?? []).map((m) => ({
         ...m,
         profile: profiles?.find((p) => p.id === m.user_id) ?? null,
-      }));
+      })) as FamilyMember[];
     },
   });
 }

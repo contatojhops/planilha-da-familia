@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ShieldCheck } from "lucide-react";
@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/useAuth";
+
+type AuthSearch = { redirect?: string };
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -35,14 +37,16 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const search = useSearch({ from: "/auth" }) as AuthSearch;
+  const redirectTo = search.redirect ?? "/app";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/app" });
-  }, [user, loading, navigate]);
+    if (!loading && user) navigate({ to: redirectTo });
+  }, [user, loading, navigate, redirectTo]);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
@@ -53,7 +57,7 @@ function AuthPage() {
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/app" });
+    navigate({ to: redirectTo });
   }
 
   async function signUp(e: React.FormEvent) {
@@ -73,19 +77,19 @@ function AuthPage() {
       return;
     }
     toast.success("Conta criada! Verifique seu e-mail se a confirmação estiver ativa.");
-    navigate({ to: "/app" });
+    navigate({ to: redirectTo });
   }
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`,
     });
     if (result.error) {
       toast.error("Não foi possível entrar com o Google.");
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/app" });
+    navigate({ to: redirectTo });
   }
 
   return (
@@ -175,7 +179,8 @@ function AuthPage() {
             </Tabs>
 
             <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" /> ou <span className="h-px flex-1 bg-border" />
+              <span className="h-px flex-1 bg-border" /> ou{" "}
+              <span className="h-px flex-1 bg-border" />
             </div>
             <Button variant="outline" className="w-full" onClick={google}>
               Continuar com Google

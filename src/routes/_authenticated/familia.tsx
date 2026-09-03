@@ -200,7 +200,7 @@ function MemberRow({ member }: { member: FamilyMember }) {
   );
 }
 
-function InviteRow({ invite }: { invite: import("@/hooks/useFamily").Invitation }) {
+function InviteRow({ invite }: { invite: Invitation }) {
   const revoke = useRevokeInvite();
 
   function copyLink() {

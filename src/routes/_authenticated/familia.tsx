@@ -129,13 +129,9 @@ function MemberRow({ member }: { member: Awaited<ReturnType<typeof useFamilyMemb
   const updateRole = useUpdateMemberRole();
   const remove = useRemoveMember();
   const isSelf = member.user_id === user?.id;
-  const adminCount =
-    member.role === "admin"
-      ? 1
-      : 0; // placeholder; calculated below via hook
 
-  const { data: members = [] } = useFamilyMembers(familyId);
-  const admins = members.filter((m) => m.role === "admin");
+  const { data: members } = useFamilyMembers(familyId);
+  const admins = (members ?? []).filter((m) => m.role === "admin");
   const isOnlyAdmin = isSelf && member.role === "admin" && admins.length === 1;
   const canManage = isAdmin && !isSelf;
 

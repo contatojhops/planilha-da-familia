@@ -37,14 +37,16 @@ export const Route = createFileRoute("/auth")({
 function AuthPage() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
+  const search = useSearch({ from: "/auth" }) as AuthSearch;
+  const redirectTo = search.redirect ?? "/app";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (!loading && user) navigate({ to: "/app" });
-  }, [user, loading, navigate]);
+    if (!loading && user) navigate({ to: redirectTo });
+  }, [user, loading, navigate, redirectTo]);
 
   async function signIn(e: React.FormEvent) {
     e.preventDefault();
@@ -55,7 +57,7 @@ function AuthPage() {
       toast.error(error.message);
       return;
     }
-    navigate({ to: "/app" });
+    navigate({ to: redirectTo });
   }
 
   async function signUp(e: React.FormEvent) {
@@ -75,19 +77,19 @@ function AuthPage() {
       return;
     }
     toast.success("Conta criada! Verifique seu e-mail se a confirmação estiver ativa.");
-    navigate({ to: "/app" });
+    navigate({ to: redirectTo });
   }
 
   async function google() {
     const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+      redirect_uri: `${window.location.origin}/auth${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`,
     });
     if (result.error) {
       toast.error("Não foi possível entrar com o Google.");
       return;
     }
     if (result.redirected) return;
-    navigate({ to: "/app" });
+    navigate({ to: redirectTo });
   }
 
   return (

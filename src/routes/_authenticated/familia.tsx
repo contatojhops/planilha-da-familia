@@ -125,7 +125,7 @@ function Page() {
   );
 }
 
-function MemberRow({ member }: { member: Awaited<ReturnType<typeof useFamilyMembers>["data"]>[number] }) {
+function MemberRow({ member }: { member: FamilyMember }) {
   const { user } = useAuth();
   const { familyId, isAdmin } = useFamily();
   const updateRole = useUpdateMemberRole();

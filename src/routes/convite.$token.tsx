@@ -16,9 +16,15 @@ export const Route = createFileRoute("/convite/$token")({
   head: () => ({
     meta: [
       { title: "Convite — Casa Clara" },
-      { name: "description", content: "Aceite o convite para participar da gestão financeira familiar no Casa Clara." },
+      {
+        name: "description",
+        content: "Aceite o convite para participar da gestão financeira familiar no Casa Clara.",
+      },
       { property: "og:title", content: "Convite — Casa Clara" },
-      { property: "og:description", content: "Aceite o convite para participar da gestão financeira familiar." },
+      {
+        property: "og:description",
+        content: "Aceite o convite para participar da gestão financeira familiar.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],

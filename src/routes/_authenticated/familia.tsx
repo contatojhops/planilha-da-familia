@@ -1,15 +1,6 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  AlertTriangle,
-  Copy,
-  Mail,
-  Trash2,
-  UserPlus,
-  Users,
-  Check,
-  User,
-} from "lucide-react";
+import { AlertTriangle, Copy, Mail, Trash2, UserPlus, Users, Check, User } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -109,7 +100,10 @@ function Page() {
           {invitesLoading ? (
             <p className="text-sm text-muted-foreground">Carregando convites...</p>
           ) : invitations.length === 0 ? (
-            <EmptyState title="Nenhum convite pendente" description="Convites enviados aparecerão aqui." />
+            <EmptyState
+              title="Nenhum convite pendente"
+              description="Convites enviados aparecerão aqui."
+            />
           ) : (
             <div className="grid gap-3">
               {invitations.map((inv) => (
@@ -144,7 +138,9 @@ function MemberRow({ member }: { member: FamilyMember }) {
           <User className="size-5 text-primary" />
         </div>
         <div>
-          <p className="font-medium">{member.profile?.full_name || member.profile?.email || "Sem nome"}</p>
+          <p className="font-medium">
+            {member.profile?.full_name || member.profile?.email || "Sem nome"}
+          </p>
           <p className="text-sm text-muted-foreground">{member.profile?.email || "—"}</p>
           <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge variant={member.role === "admin" ? "default" : "secondary"}>
@@ -235,7 +231,13 @@ function InviteRow({ invite }: { invite: Invitation }) {
   );
 }
 
-function InviteDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boolean) => void }) {
+function InviteDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
   const { familyId } = useFamily();
   const create = useCreateInvite();
   const [email, setEmail] = useState("");

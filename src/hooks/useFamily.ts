@@ -46,7 +46,12 @@ export type FamilyMember = {
   user_id: string;
   role: FamilyRole;
   created_at: string;
-  profile: { id: string; full_name: string | null; email: string | null; whatsapp: string | null } | null;
+  profile: {
+    id: string;
+    full_name: string | null;
+    email: string | null;
+    whatsapp: string | null;
+  } | null;
 };
 
 export function useFamilyMembers(familyId: string | null) {

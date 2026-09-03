@@ -192,3 +192,87 @@ export function useMonthTransactions(familyId: string | null, month: string) {
     },
   });
 }
+
+export type Invitation = {
+  id: string;
+  email: string;
+  role: FamilyRole;
+  token: string;
+  expires_at: string;
+  status: string;
+  invited_by: string;
+};
+
+export function useInvitations(familyId: string | null) {
+  return useQuery({
+    queryKey: ["invitations", familyId],
+    enabled: !!familyId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invitations")
+        .select("id, email, role, token, expires_at, status, invited_by")
+        .eq("family_id", familyId!)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []) as unknown as Invitation[];
+    },
+  });
+}
+
+export function useUpdateMemberRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ memberId, role }: { memberId: string; role: FamilyRole }) => {
+      const { error } = await supabase.from("family_members").update({ role }).eq("id", memberId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["family-members"] }),
+  });
+}
+
+export function useRemoveMember() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (memberId: string) => {
+      const { error } = await supabase.from("family_members").delete().eq("id", memberId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["family-members"] }),
+  });
+}
+
+export function useCreateInvite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      familyId,
+      email,
+      role,
+    }: {
+      familyId: string;
+      email: string;
+      role: FamilyRole;
+    }) => {
+      const { data, error } = await supabase.rpc("create_family_invite", {
+        p_family_id: familyId,
+        p_email: email,
+        p_role: role,
+      });
+      if (error) throw error;
+      return data as string;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["invitations"] }),
+  });
+}
+
+export function useRevokeInvite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (inviteId: string) => {
+      const { error } = await supabase.rpc("revoke_family_invite", { p_invite_id: inviteId });
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["invitations"] }),
+  });
+}

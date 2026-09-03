@@ -625,7 +625,7 @@ function PayDialog({
   invoice: InvoiceRow | null;
   onClose: () => void;
   categories: { id: string; name: string; kind: string }[];
-  members: { user_id: string; profile: { full_name: string; email: string | null } | null }[];
+  members: { user_id: string; profile: { full_name: string | null; email: string | null } | null }[];
   onConfirm: (categoryId: string | null, ownerId: string | null) => void;
   pending: boolean;
 }) {

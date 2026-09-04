@@ -883,12 +883,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      accept_family_invite:
-        | { Args: { p_token: string }; Returns: string }
-        | {
-            Args: { p_display_name?: string; p_token: string }
-            Returns: string
-          }
+      accept_family_invite: {
+        Args: { p_display_name?: string; p_token: string }
+        Returns: string
+      }
       can_write: { Args: { _family_id: string }; Returns: boolean }
       capture_all_net_worth_snapshots: { Args: never; Returns: undefined }
       capture_net_worth_snapshot: {

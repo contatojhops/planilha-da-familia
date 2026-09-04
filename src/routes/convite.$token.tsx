@@ -83,7 +83,7 @@ function InvitePage() {
     setAccepting(true);
     const { data: familyId, error } = await supabase.rpc("accept_family_invite", {
       p_token: token,
-      p_display_name: displayName.trim() || undefined,
+      p_display_name: displayName.trim() || "",
     });
     setAccepting(false);
     if (error) {

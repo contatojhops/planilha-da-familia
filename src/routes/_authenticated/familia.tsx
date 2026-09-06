@@ -60,6 +60,7 @@ function Page() {
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(familyId);
   const { data: invitations = [], isLoading: invitesLoading } = useInvitations(familyId);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -68,9 +69,14 @@ function Page() {
         description="Membros da família e convites pendentes"
         actions={
           isAdmin && (
-            <Button size="sm" onClick={() => setInviteOpen(true)}>
-              <UserPlus className="mr-2 size-4" /> Convidar membro
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => setManualOpen(true)}>
+                <KeyRound className="mr-2 size-4" /> Cadastrar membro manualmente
+              </Button>
+              <Button size="sm" onClick={() => setInviteOpen(true)}>
+                <UserPlus className="mr-2 size-4" /> Convidar membro
+              </Button>
+            </div>
           )
         }
       />

@@ -121,6 +121,7 @@ function Page() {
       )}
 
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      <ManualMemberDialog open={manualOpen} onOpenChange={setManualOpen} />
     </div>
   );
 }

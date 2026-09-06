@@ -1,7 +1,20 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, Copy, Mail, Trash2, UserPlus, Users, Check, User } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  AlertTriangle,
+  Copy,
+  KeyRound,
+  Mail,
+  Trash2,
+  UserPlus,
+  Users,
+  Check,
+  User,
+} from "lucide-react";
 import { toast } from "sonner";
+import { createMemberAccount } from "@/lib/members.functions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -60,6 +73,7 @@ function Page() {
   const { data: members = [], isLoading: membersLoading } = useFamilyMembers(familyId);
   const { data: invitations = [], isLoading: invitesLoading } = useInvitations(familyId);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -68,9 +82,14 @@ function Page() {
         description="Membros da família e convites pendentes"
         actions={
           isAdmin && (
-            <Button size="sm" onClick={() => setInviteOpen(true)}>
-              <UserPlus className="mr-2 size-4" /> Convidar membro
-            </Button>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={() => setManualOpen(true)}>
+                <KeyRound className="mr-2 size-4" /> Cadastrar membro manualmente
+              </Button>
+              <Button size="sm" onClick={() => setInviteOpen(true)}>
+                <UserPlus className="mr-2 size-4" /> Convidar membro
+              </Button>
+            </div>
           )
         }
       />
@@ -115,6 +134,7 @@ function Page() {
       )}
 
       <InviteDialog open={inviteOpen} onOpenChange={setInviteOpen} />
+      <ManualMemberDialog open={manualOpen} onOpenChange={setManualOpen} />
     </div>
   );
 }
@@ -327,6 +347,156 @@ function InviteDialog({
               <div className="flex gap-2">
                 <Input readOnly value={link!} onFocus={(e) => e.currentTarget.select()} />
                 <Button variant="outline" onClick={copyLink}>
+                  {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+                </Button>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button onClick={close}>Concluir</Button>
+            </DialogFooter>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function ManualMemberDialog({
+  open,
+  onOpenChange,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+}) {
+  const { familyId } = useFamily();
+  const queryClient = useQueryClient();
+  const createAccount = useServerFn(createMemberAccount);
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState<FamilyRole>("member");
+  const [copied, setCopied] = useState(false);
+
+  const create = useMutation({
+    mutationFn: (input: {
+      family_id: string;
+      email: string;
+      display_name: string;
+      role: FamilyRole;
+    }) => createAccount({ data: input }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["family-members"] });
+      toast.success("Conta criada com sucesso.");
+    },
+    onError: (err: Error) => toast.error(err.message || "Falha ao criar conta."),
+  });
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!familyId || !email.trim() || !name.trim()) return;
+    create.mutate({ family_id: familyId, email: email.trim(), display_name: name.trim(), role });
+  }
+
+  function copyCredentials() {
+    if (!create.data) return;
+    navigator.clipboard.writeText(
+      `Acesso ao ${window.location.origin}\nE-mail: ${create.data.email}\nSenha provisória: ${create.data.password}`,
+    );
+    setCopied(true);
+    toast.success("Dados de acesso copiados.");
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  function close() {
+    setEmail("");
+    setName("");
+    setRole("member");
+    setCopied(false);
+    create.reset();
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && close()}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Cadastrar membro manualmente</DialogTitle>
+          <DialogDescription>
+            Cria uma conta de acesso pronta, com senha provisória, sem precisar de link de convite.
+          </DialogDescription>
+        </DialogHeader>
+        {!create.data ? (
+          <form onSubmit={onSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="manual-name">Nome de exibição</Label>
+              <Input
+                id="manual-name"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Ex.: Maria"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-email">E-mail</Label>
+              <Input
+                id="manual-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="membro@email.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="manual-role">Papel</Label>
+              <Select value={role} onValueChange={(v) => setRole(v as FamilyRole)}>
+                <SelectTrigger id="manual-role">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="member">Membro</SelectItem>
+                  <SelectItem value="viewer">Visualizador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={close}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={create.isPending || !email.trim() || !name.trim()}
+              >
+                {create.isPending ? "Criando..." : "Criar conta"}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <div className="space-y-4">
+            <div className="rounded-md border border-yellow-500/30 bg-yellow-500/10 p-3 text-sm text-yellow-700 dark:text-yellow-300">
+              <div className="flex items-start gap-2">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+                <p>
+                  Anote ou copie agora: a senha provisória não será exibida novamente. Envie ao
+                  membro e oriente a trocá-la no primeiro acesso.
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>E-mail</Label>
+              <Input readOnly value={create.data.email} onFocus={(e) => e.currentTarget.select()} />
+            </div>
+            <div className="space-y-2">
+              <Label>Senha provisória</Label>
+              <div className="flex gap-2">
+                <Input
+                  readOnly
+                  className="font-mono"
+                  value={create.data.password}
+                  onFocus={(e) => e.currentTarget.select()}
+                />
+                <Button variant="outline" onClick={copyCredentials}>
                   {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
                 </Button>
               </div>

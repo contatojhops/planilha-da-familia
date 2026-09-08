@@ -81,9 +81,16 @@ export function StatCard({
 }
 
 /** Traffic light thresholds for the accumulated balance. */
-export function accumulatedFill(accumulated: number): "positive" | "warning" | "negative" {
-  if (accumulated < -500) return "negative";
-  if (accumulated <= 100) return "warning";
+export type BalanceThresholds = { deficit: number; warning: number };
+
+export const DEFAULT_THRESHOLDS: BalanceThresholds = { deficit: -500, warning: 100 };
+
+export function accumulatedFill(
+  accumulated: number,
+  thresholds: BalanceThresholds = DEFAULT_THRESHOLDS,
+): "positive" | "warning" | "negative" {
+  if (accumulated < thresholds.deficit) return "negative";
+  if (accumulated <= thresholds.warning) return "warning";
   return "positive";
 }
 
@@ -91,17 +98,19 @@ export function MonthTimeline({
   rows,
   selected,
   onSelect,
+  thresholds = DEFAULT_THRESHOLDS,
 }: {
   rows: MonthProjection[];
   selected?: string;
   onSelect?: (key: string) => void;
+  thresholds?: BalanceThresholds;
 }) {
   return (
     <div className="-mx-3 overflow-x-auto px-3 pb-1 md:mx-0 md:px-0">
       <div className="flex min-w-max gap-2">
         {rows.map((row) => {
           const negative = row.balance < 0;
-          const fill = accumulatedFill(row.cumulative);
+          const fill = accumulatedFill(row.cumulative, thresholds);
           return (
             <button
               key={row.key}

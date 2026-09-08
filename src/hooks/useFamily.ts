@@ -7,7 +7,14 @@ export type FamilyRole = "admin" | "member" | "viewer";
 export type Membership = {
   family_id: string;
   role: FamilyRole;
-  families: { id: string; name: string; currency: string; emergency_fund_target: number } | null;
+  families: {
+    id: string;
+    name: string;
+    currency: string;
+    emergency_fund_target: number;
+    deficit_alert_threshold: number;
+    warning_threshold: number;
+  } | null;
 };
 
 export function useMemberships() {
@@ -18,7 +25,7 @@ export function useMemberships() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("family_members")
-        .select("family_id, role, families(id, name, currency, emergency_fund_target)")
+        .select("family_id, role, families(id, name, currency, emergency_fund_target, deficit_alert_threshold, warning_threshold)")
         .order("created_at", { ascending: true });
       if (error) throw error;
       return (data ?? []) as unknown as Membership[];
@@ -34,6 +41,10 @@ export function useFamily() {
     familyId: active?.family_id ?? null,
     family: active?.families ?? null,
     role: (active?.role ?? null) as FamilyRole | null,
+    thresholds: {
+      deficit: Number(active?.families?.deficit_alert_threshold ?? -500),
+      warning: Number(active?.families?.warning_threshold ?? 100),
+    },
     canWrite: active?.role === "admin" || active?.role === "member",
     isAdmin: active?.role === "admin",
     isLoading,

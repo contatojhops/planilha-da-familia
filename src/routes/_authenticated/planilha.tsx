@@ -166,7 +166,7 @@ function Planilha() {
         defaultMonth={month}
       />
 
-      <MonthTimeline rows={projection} selected={month} onSelect={setMonth} />
+      <MonthTimeline rows={projection} selected={month} onSelect={setMonth} thresholds={thresholds} />
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard label="Receitas do mês" value={money(monthRow.income)} />
@@ -180,13 +180,13 @@ function Planilha() {
         <StatCard
           label="Saldo acumulado"
           value={money(monthRow.cumulative)}
-          fill={accumulatedFill(monthRow.cumulative)}
+          fill={accumulatedFill(monthRow.cumulative, thresholds)}
           hint={
-            monthRow.cumulative < -500
-              ? "Crítico: abaixo de −R$ 500"
-              : monthRow.cumulative <= 100
-                ? "Atenção: entre −R$ 500 e R$ 100"
-                : "Saudável: acima de R$ 100"
+            monthRow.cumulative < thresholds.deficit
+              ? `Crítico: abaixo de ${money(thresholds.deficit)}`
+              : monthRow.cumulative <= thresholds.warning
+                ? `Atenção: entre ${money(thresholds.deficit)} e ${money(thresholds.warning)}`
+                : `Saudável: acima de ${money(thresholds.warning)}`
           }
         />
       </div>

@@ -295,31 +295,37 @@ export type Database = {
           created_at: string
           created_by: string
           currency: string
+          deficit_alert_threshold: number
           emergency_fund_target: number
           id: string
           name: string
           onboarding_done: boolean
           updated_at: string
+          warning_threshold: number
         }
         Insert: {
           created_at?: string
           created_by: string
           currency?: string
+          deficit_alert_threshold?: number
           emergency_fund_target?: number
           id?: string
           name: string
           onboarding_done?: boolean
           updated_at?: string
+          warning_threshold?: number
         }
         Update: {
           created_at?: string
           created_by?: string
           currency?: string
+          deficit_alert_threshold?: number
           emergency_fund_target?: number
           id?: string
           name?: string
           onboarding_done?: boolean
           updated_at?: string
+          warning_threshold?: number
         }
         Relationships: []
       }

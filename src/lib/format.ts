@@ -62,3 +62,22 @@ export function formatDate(value: string | null | undefined) {
 export function todayISO() {
   return new Date().toISOString().slice(0, 10);
 }
+export function relativeTime(value: string | null | undefined) {
+  if (!value) return "—";
+  const then = new Date(value).getTime();
+  const diff = Math.round((Date.now() - then) / 1000);
+  const rtf = new Intl.RelativeTimeFormat("pt-BR", { numeric: "auto" });
+  const units: [Intl.RelativeTimeFormatUnit, number][] = [
+    ["second", 60],
+    ["minute", 60],
+    ["hour", 24],
+    ["day", 30],
+    ["month", 12],
+  ];
+  let amount = diff;
+  for (const [unit, span] of units) {
+    if (Math.abs(amount) < span) return rtf.format(-amount, unit);
+    amount = Math.round(amount / span);
+  }
+  return rtf.format(-amount, "year");
+}

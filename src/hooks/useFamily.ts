@@ -300,3 +300,99 @@ export function useRevokeInvite() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["invitations"] }),
   });
 }
+
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (patch: Record<string, unknown>) => {
+      const { error } = await supabase.from("profiles").update(patch).eq("id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["profile"] }),
+  });
+}
+
+export function useUpdateFamily() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      familyId,
+      patch,
+    }: {
+      familyId: string;
+      patch: Record<string, unknown>;
+    }) => {
+      const { error } = await supabase.from("families").update(patch).eq("id", familyId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["memberships"] }),
+  });
+}
+
+export type AuditEntry = {
+  id: string;
+  entity: string;
+  entity_id: string | null;
+  action: string;
+  actor_id: string | null;
+  created_at: string;
+  actor_name: string | null;
+};
+
+export const AUDIT_PAGE_SIZE = 20;
+
+export function useAuditLog(familyId: string | null, entity: string, page: number) {
+  return useQuery({
+    queryKey: ["audit-log", familyId, entity, page],
+    enabled: !!familyId,
+    queryFn: async () => {
+      let query = supabase
+        .from("audit_log")
+        .select("id, entity, entity_id, action, actor_id, created_at")
+        .eq("family_id", familyId!)
+        .order("created_at", { ascending: false })
+        .range(0, (page + 1) * AUDIT_PAGE_SIZE - 1);
+      if (entity !== "all") query = query.eq("entity", entity);
+      const { data, error } = await query;
+      if (error) throw error;
+      const rows = data ?? [];
+      const ids = [...new Set(rows.map((r) => r.actor_id).filter(Boolean))] as string[];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", ids.length ? ids : ["00000000-0000-0000-0000-000000000000"]);
+      return rows.map((row) => ({
+        ...row,
+        actor_name: profiles?.find((p) => p.id === row.actor_id)?.full_name ?? null,
+      })) as AuditEntry[];
+    },
+  });
+}
+
+export function useLeaveFamily() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (familyId: string) => {
+      const { error } = await supabase
+        .from("family_members")
+        .delete()
+        .eq("family_id", familyId)
+        .eq("user_id", user!.id);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries(),
+  });
+}
+
+export function useDeleteFamily() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (familyId: string) => {
+      const { error } = await supabase.from("families").delete().eq("id", familyId);
+      if (error) throw error;
+    },
+    onSuccess: () => qc.invalidateQueries(),
+  });
+}

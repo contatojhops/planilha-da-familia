@@ -72,7 +72,7 @@ const RECURRENCES = Object.keys(RECURRENCE_LABELS);
 
 function Planilha() {
   const { user } = useAuth();
-  const { familyId, canWrite } = useFamily();
+  const { familyId, canWrite, thresholds } = useFamily();
   const qc = useQueryClient();
   const { data: txs = [] } = useTransactions(familyId);
   const { data: categories = [] } = useCategories(familyId);
